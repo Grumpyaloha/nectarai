@@ -1,290 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FarmerChat App - Gemini API</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* Light, earthy background */
-        }
-        .chat-bubble {
-            max-width: 75%;
-            padding: 10px 15px;
-            border-radius: 18px;
-            margin-bottom: 8px;
-            line-height: 1.4;
-            word-wrap: break-word;
-        }
-        .farmer-bubble {
-            background-color: #DCF8C6; /* Light green, like WhatsApp user bubble */
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-            color: #333;
-        }
-        .ai-bubble {
-            background-color: #ffffff; /* White for AI responses */
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-            border: 1px solid #e0e0e0;
-            color: #333;
-        }
-        .thinking-bubble {
-            background-color: #e2e8f0; /* Light gray for thinking */
-            color: #4a5568;
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-        }
-        .timestamp {
-            font-size: 0.7rem;
-            color: #888;
-            margin-top: 4px;
-        }
-        .input-bar {
-            background-color: #ffffff;
-            border-top: 1px solid #e0e0e0;
-        }
-        .chat-image-preview {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 10px;
-            margin-top: 5px;
-            cursor: pointer; 
-        }
-        .quick-reply-button {
-            background-color: #e9f5ff;
-            color: #007bff;
-            border: 1px solid #007bff;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            margin: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .quick-reply-button:hover {
-            background-color: #d0eaff;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FarmerChat App - Gemini API</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+    .chat-bubble {
+      max-width: 75%; padding: 10px 15px; border-radius: 18px;
+      margin-bottom: 8px; line-height: 1.4; word-wrap: break-word;
+    }
+    .farmer-bubble { background-color: #DCF8C6; align-self: flex-end; border-bottom-right-radius: 4px; color: #333; }
+    .ai-bubble { background-color: #fff; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #e0e0e0; color: #333; }
+    .thinking-bubble { background-color: #e2e8f0; color: #4a5568; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .timestamp { font-size: 0.7rem; color: #888; margin-top: 4px; }
+    .input-bar { background-color: #fff; border-top: 1px solid #e0e0e0; }
+    .chat-image-preview { max-width: 200px; max-height: 200px; border-radius: 10px; margin-top: 5px; cursor: pointer; }
+    .quick-reply-button {
+      background-color: #e9f5ff; color: #007bff; border: 1px solid #007bff;
+      padding: 8px 12px; border-radius: 20px; font-size: 0.9rem;
+      margin: 4px; cursor: pointer; transition: background-color 0.2s;
+    }
+    .quick-reply-button:hover { background-color: #d0eaff; }
+  </style>
 </head>
 <body class="flex flex-col h-screen max-w-md mx-auto shadow-lg">
 
-    <header class="bg-green-600 text-white p-4 flex items-center justify-between shadow-md">
-        <div class="flex items-center">
-            <img src="https://placehold.co/40x40/ffffff/38A169?text=FC" alt="FarmerChat Logo" class="rounded-full mr-3">
-            <h1 class="text-xl font-semibold">FarmerChat</h1>
-        </div>
-        <div>
-            <button id="languageButton" title="Change Language" class="mr-2"><i class="fas fa-language text-xl"></i></button>
-            <button id="settingsButton" title="Settings"><i class="fas fa-cog text-xl"></i></button>
-        </div>
-    </header>
+  <!-- Header -->
+  <header class="bg-green-600 text-white p-4 flex items-center justify-between shadow-md">
+    <div class="flex items-center">
+      <img src="https://placehold.co/40x40/ffffff/38A169?text=FC" alt="FarmerChat Logo" class="rounded-full mr-3">
+      <h1 class="text-xl font-semibold">FarmerChat</h1>
+    </div>
+    <div>
+      <button id="languageButton" title="Change Language" class="mr-2"><i class="fas fa-language text-xl"></i></button>
+      <button id="settingsButton" title="Settings"><i class="fas fa-cog text-xl"></i></button>
+    </div>
+  </header>
 
-    <main id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-100">
-        <div class="chat-bubble ai-bubble">
-            <p>Welcome to FarmerChat! Ask me anything about farming, or upload an image of your crop issue.</p>
-            <div class="timestamp">9:00 AM</div>
-        </div>
-    </main>
+  <!-- Chat Area -->
+  <main id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-100">
+    <div class="chat-bubble ai-bubble">
+      <p>Welcome to FarmerChat! Ask me anything about farming, or upload an image of your crop issue.</p>
+      <div class="timestamp">9:00 AM</div>
+    </div>
+  </main>
 
-    <footer class="input-bar p-3 flex items-center">
-        <button id="attachFileButton" class="text-gray-500 hover:text-green-600 p-2 mr-2" title="Attach image">
-            <i class="fas fa-paperclip text-xl"></i>
-        </button>
-        <input type="text" id="messageInput" class="flex-1 border border-gray-300 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Type your question...">
-        <button id="sendButton" class="bg-green-600 hover:bg-green-700 text-white rounded-full p-2 ml-2" title="Send message">
-            <i class="fas fa-paper-plane text-xl"></i>
-        </button>
-         <button id="micButton" class="text-gray-500 hover:text-green-600 p-2 ml-1" title="Voice input">
-            <i class="fas fa-microphone text-xl"></i>
-        </button>
-    </footer>
+  <!-- Footer/Input Bar -->
+  <footer class="input-bar p-3 flex items-center">
+    <button id="attachFileButton" class="text-gray-500 hover:text-green-600 p-2 mr-2" title="Attach image">
+      <i class="fas fa-paperclip text-xl"></i>
+    </button>
+    <input type="text" id="messageInput"
+      class="flex-1 border border-gray-300 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+      placeholder="Type your question...">
+    <button id="sendButton" class="bg-green-600 hover:bg-green-700 text-white rounded-full p-2 ml-2" title="Send message">
+      <i class="fas fa-paper-plane text-xl"></i>
+    </button>
+    <button id="micButton" class="text-gray-500 hover:text-green-600 p-2 ml-1" title="Voice input">
+      <i class="fas fa-microphone text-xl"></i>
+    </button>
+  </footer>
 
-    <script>
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const attachFileButton = document.getElementById('attachFileButton');
-        const micButton = document.getElementById('micButton');
-        const chatArea = document.getElementById('chatArea');
+  <script>
+    // DOM Elements
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const attachFileButton = document.getElementById('attachFileButton');
+    const micButton = document.getElementById('micButton');
+    const chatArea = document.getElementById('chatArea');
+    let currentThinkingBubble = null;
 
-        let currentThinkingBubble = null; // To manage the "thinking" bubble
+    // Add a message to the chat area
+    function addMessageToChat(message, sender, imageUrl = null, isThinking = false) {
+      if (currentThinkingBubble && !isThinking) {
+        currentThinkingBubble.remove();
+        currentThinkingBubble = null;
+      }
+      const bubble = document.createElement('div');
+      bubble.classList.add('chat-bubble');
+      if (isThinking) {
+        bubble.classList.add('thinking-bubble');
+        currentThinkingBubble = bubble;
+      } else {
+        bubble.classList.add(sender === 'farmer' ? 'farmer-bubble' : 'ai-bubble');
+      }
+      const messageText = document.createElement('p');
+      messageText.textContent = message;
+      bubble.appendChild(messageText);
 
-        // Function to add a message to the chat area
-        function addMessageToChat(message, sender, imageUrl = null, isThinking = false) {
-            // Remove previous thinking bubble if it exists
-            if (currentThinkingBubble && !isThinking) {
-                currentThinkingBubble.remove();
-                currentThinkingBubble = null;
-            }
+      if (imageUrl) {
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = sender === 'farmer' ? "Farmer's image" : "AI provided image";
+        img.classList.add('chat-image-preview');
+        bubble.appendChild(img);
+      }
 
-            const bubble = document.createElement('div');
-            bubble.classList.add('chat-bubble');
-            if (isThinking) {
-                bubble.classList.add('thinking-bubble');
-                currentThinkingBubble = bubble; // Track the current thinking bubble
-            } else {
-                bubble.classList.add(sender === 'farmer' ? 'farmer-bubble' : 'ai-bubble');
-            }
+      if (!isThinking) {
+        const timestamp = document.createElement('div');
+        timestamp.classList.add('timestamp');
+        timestamp.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        bubble.appendChild(timestamp);
+      }
+      chatArea.appendChild(bubble);
+      chatArea.scrollTop = chatArea.scrollHeight;
+      return bubble;
+    }
 
-            const messageText = document.createElement('p');
-            messageText.textContent = message;
-            bubble.appendChild(messageText);
+    // Call Gemini API
+    async function getAIResponseFromGemini(promptText, base64ImageData = null, mimeType = null) {
+      addMessageToChat("FarmerChat is thinking...", 'ai', null, true);
+      const apiKey = ""; // TODO: Insert your Gemini API key here!
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+      let parts = [{ text: promptText }];
+      if (base64ImageData && mimeType) {
+        parts.push({ inlineData: { mimeType, data: base64ImageData } });
+      }
+      const payload = { contents: [{ role: "user", parts }] };
 
-            if (imageUrl) {
-                const img = document.createElement('img');
-                img.src = imageUrl;
-                img.alt = sender === 'farmer' ? "Farmer's image" : "AI provided image";
-                img.classList.add('chat-image-preview');
-                bubble.appendChild(img);
-            }
-
-            if (!isThinking) { // Don't add timestamp to thinking bubble
-                const timestamp = document.createElement('div');
-                timestamp.classList.add('timestamp');
-                timestamp.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                bubble.appendChild(timestamp);
-            }
-
-            chatArea.appendChild(bubble);
-            chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
-            return bubble; // Return the bubble element if needed (e.g., to update it)
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`API Error (${response.status}): ${errorData.error?.message || 'Unknown error'}`);
         }
-
-        // Function to call Gemini API
-        async function getAIResponseFromGemini(promptText, base64ImageData = null, mimeType = null) {
-            addMessageToChat("FarmerChat is thinking...", 'ai', null, true);
-
-            const apiKey = ""; // API key handled by Canvas for gemini-2.0-flash
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-            
-            let parts = [{ text: promptText }];
-            if (base64ImageData && mimeType) {
-                parts.push({
-                    inlineData: {
-                        mimeType: mimeType,
-                        data: base64ImageData
-                    }
-                });
-            }
-
-            const payload = {
-                contents: [{ role: "user", parts: parts }]
-            };
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error("API Error Response:", errorData);
-                    throw new Error(`API Error (${response.status}): ${errorData.error?.message || 'Unknown error'}`);
-                }
-
-                const result = await response.json();
-
-                if (currentThinkingBubble) { // Remove thinking bubble before showing response
-                    currentThinkingBubble.remove();
-                    currentThinkingBubble = null;
-                }
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const aiTextResponse = result.candidates[0].content.parts[0].text;
-                    addMessageToChat(aiTextResponse, 'ai');
-                } else {
-                    console.log("LLM response structure unexpected:", result);
-                    addMessageToChat("Sorry, I received an unexpected response. Please try again.", 'ai');
-                }
-
-            } catch (error) {
-                console.error('Error calling Gemini API:', error);
-                if (currentThinkingBubble) {
-                    currentThinkingBubble.remove();
-                    currentThinkingBubble = null;
-                }
-                addMessageToChat(`Sorry, I couldn't get a response: ${error.message}`, 'ai');
-            }
+        const result = await response.json();
+        if (currentThinkingBubble) {
+          currentThinkingBubble.remove();
+          currentThinkingBubble = null;
         }
+        if (
+          result.candidates && result.candidates.length > 0 &&
+          result.candidates[0].content && result.candidates[0].content.parts &&
+          result.candidates[0].content.parts.length > 0
+        ) {
+          const aiTextResponse = result.candidates[0].content.parts[0].text;
+          addMessageToChat(aiTextResponse, 'ai');
+        } else {
+          addMessageToChat("Sorry, I received an unexpected response. Please try again.", 'ai');
+        }
+      } catch (error) {
+        if (currentThinkingBubble) {
+          currentThinkingBubble.remove();
+          currentThinkingBubble = null;
+        }
+        addMessageToChat(`Sorry, I couldn't get a response: ${error.message}`, 'ai');
+      }
+    }
 
-        // Send message handler
-        sendButton.addEventListener('click', () => {
-            const message = messageInput.value.trim();
-            if (message) {
-                addMessageToChat(message, 'farmer');
-                getAIResponseFromGemini(message); 
-                messageInput.value = '';
-            }
-        });
+    // Send text message
+    sendButton.addEventListener('click', () => {
+      const message = messageInput.value.trim();
+      if (message) {
+        addMessageToChat(message, 'farmer');
+        getAIResponseFromGemini(message);
+        messageInput.value = '';
+      }
+    });
+    messageInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') sendButton.click();
+    });
 
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendButton.click();
-            }
-        });
-        
-        // Quick reply handler (delegated event listener for static examples)
-        chatArea.addEventListener('click', function(event) {
-            if (event.target.classList.contains('quick-reply-button')) {
-                const replyText = event.target.dataset.reply;
-                addMessageToChat(replyText, 'farmer');
-                getAIResponseFromGemini(replyText);
-                // Example quick replies are static, so no need to remove them dynamically for now
-            }
-        });
+    // Quick reply handler (for future quick reply buttons)
+    chatArea.addEventListener('click', event => {
+      if (event.target.classList.contains('quick-reply-button')) {
+        const replyText = event.target.dataset.reply;
+        addMessageToChat(replyText, 'farmer');
+        getAIResponseFromGemini(replyText);
+      }
+    });
 
-        // Attach file functionality
-        attachFileButton.addEventListener('click', () => {
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.accept = 'image/*'; // Accept all image types
-            fileInput.onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const base64ImageData = event.target.result.split(',')[1]; // Get base64 part
-                        const mimeType = file.type;
-                        
-                        // Display the image sent by farmer
-                        addMessageToChat("Image to analyze:", 'farmer', event.target.result);
-                        
-                        // Get text prompt (can be from input or a default one)
-                        let textPromptForImage = messageInput.value.trim();
-                        if (!textPromptForImage) {
-                            textPromptForImage = "Analyze this image in a farming context. What do you see? What advice can you give?";
-                        }
-                        messageInput.value = ''; // Clear input after using it for image prompt
+    // Attach image
+    attachFileButton.addEventListener('click', () => {
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.onchange = e => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = event => {
+            const base64ImageData = event.target.result.split(',')[1];
+            const mimeType = file.type;
+            addMessageToChat("Image to analyze:", 'farmer', event.target.result);
+            let textPrompt = messageInput.value.trim() ||
+              "Analyze this image in a farming context. What do you see? What advice can you give?";
+            messageInput.value = '';
+            getAIResponseFromGemini(textPrompt, base64ImageData, mimeType);
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      fileInput.click();
+    });
 
-                        getAIResponseFromGemini(textPromptForImage, base64ImageData, mimeType);
-                    }
-                    reader.readAsDataURL(file); // This generates the data URL (includes base64)
-                }
-            };
-            fileInput.click();
-        });
+    // Voice input placeholder
+    micButton.addEventListener('click', () => {
+      const voiceInputPlaceholder = "[Farmer speaking...] My crops are wilting, what should I do?";
+      addMessageToChat(voiceInputPlaceholder, 'farmer');
+      getAIResponseFromGemini(voiceInputPlaceholder);
+    });
 
-        // Placeholder for voice input
-        micButton.addEventListener('click', () => {
-            // In a real app, this would trigger speech-to-text
-            // For demo, let's just add a placeholder message
-            const voiceInputPlaceholder = "[Farmer speaking...] My crops are wilting, what should I do?";
-            addMessageToChat(voiceInputPlaceholder, 'farmer');
-            getAIResponseFromGemini(voiceInputPlaceholder);
-        });
-        
-        // Placeholder for language and settings
-        document.getElementById('languageButton').addEventListener('click', () => alert('Language selection feature coming soon!'));
-        document.getElementById('settingsButton').addEventListener('click', () => alert('Settings panel coming soon!'));
-
-    </script>
+    // Language/settings placeholders
+    document.getElementById('languageButton').addEventListener('click', () =>
+      alert('Language selection feature coming soon!')
+    );
+    document.getElementById('settingsButton').addEventListener('click', () =>
+      alert('Settings panel coming soon!')
+    );
+  </script>
 </body>
 </html>
